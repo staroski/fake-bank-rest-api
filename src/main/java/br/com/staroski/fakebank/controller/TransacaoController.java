@@ -15,8 +15,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.staroski.fakebank.controller.dto.TransacaoDto;
+import br.com.staroski.fakebank.controller.dto.TransferenciaDto;
+import br.com.staroski.fakebank.model.Agencia;
 import br.com.staroski.fakebank.model.Conta;
 import br.com.staroski.fakebank.model.Transacao;
+import br.com.staroski.fakebank.repository.AgenciaRepository;
 import br.com.staroski.fakebank.repository.ContaRepository;
 import br.com.staroski.fakebank.repository.TransacaoRepository;
 
@@ -28,12 +31,18 @@ public class TransacaoController {
     private TransacaoRepository transacaoRepository;
 
     @Autowired
+    private AgenciaRepository agenciaRepository;
+
+    @Autowired
     private ContaRepository contaRepository;
 
     @PostMapping("/listar")
     public List<TransacaoDto> listar(@RequestBody TransacaoDto dto) {
+        Long numeroAgencia = dto.getNumeroAgencia();
         Long numeroConta = dto.getNumeroConta();
-        Conta conta = contaRepository.findById(numeroConta)
+        Agencia agencia = agenciaRepository.findById(numeroAgencia)
+                .orElseThrow(() -> new ObjectNotFoundException(numeroAgencia, Agencia.class.getSimpleName()));
+        Conta conta = contaRepository.findByAgenciaAndNumero(agencia, numeroConta)
                 .orElseThrow(() -> new ObjectNotFoundException(numeroConta, Conta.class.getSimpleName()));
         return transacaoRepository.findByConta(conta).stream().map(transacao -> new TransacaoDto(transacao)).toList();
     }
@@ -45,8 +54,11 @@ public class TransacaoController {
         if (valor.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Impossível depositar valor negativo: " + valor);
         }
+        Long numeroAgencia = dto.getNumeroAgencia();
         Long numeroConta = dto.getNumeroConta();
-        Conta conta = contaRepository.findById(numeroConta)
+        Agencia agencia = agenciaRepository.findById(numeroAgencia)
+                .orElseThrow(() -> new ObjectNotFoundException(numeroAgencia, Agencia.class.getSimpleName()));
+        Conta conta = contaRepository.findByAgenciaAndNumero(agencia, numeroConta)
                 .orElseThrow(() -> new ObjectNotFoundException(numeroConta, Conta.class.getSimpleName()));
         BigDecimal saldo = conta.getSaldo();
         conta.setSaldo(saldo.add(valor));
@@ -68,8 +80,11 @@ public class TransacaoController {
         if (valor.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Impossível sacar valor negativo: " + valor);
         }
+        Long numeroAgencia = dto.getNumeroAgencia();
         Long numeroConta = dto.getNumeroConta();
-        Conta conta = contaRepository.findById(numeroConta)
+        Agencia agencia = agenciaRepository.findById(numeroAgencia)
+                .orElseThrow(() -> new ObjectNotFoundException(numeroAgencia, Agencia.class.getSimpleName()));
+        Conta conta = contaRepository.findByAgenciaAndNumero(agencia, numeroConta)
                 .orElseThrow(() -> new ObjectNotFoundException(numeroConta, Conta.class.getSimpleName()));
         BigDecimal saldo = conta.getSaldo();
         if (saldo.compareTo(valor) < 0) {
@@ -86,37 +101,43 @@ public class TransacaoController {
         transacao.setValor(valor.negate());
         return new TransacaoDto(transacaoRepository.save(transacao));
     }
-    
-    //TODO Criar TranferenciaDto
+
     @PostMapping("/transferir")
     @ResponseStatus(HttpStatus.OK)
-    public List<TransacaoDto> transferir(@RequestBody TransacaoDto dtoOrigem, @RequestBody TransacaoDto dtoDestino) {
-        BigDecimal valorOrigem = dtoOrigem.getValor();
+    public List<TransacaoDto> transferir(@RequestBody TransferenciaDto dto) {
+        BigDecimal valorOrigem = dto.getValor();
         if (valorOrigem.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Impossível sacar valor negativo: " + valorOrigem);
         }
-        Long numeroContaOrigem = dtoOrigem.getNumeroConta();
-        Conta contaOrigem = contaRepository.findById(numeroContaOrigem)
+        Long numeroAgenciaOrigem = dto.getAgenciaOrigem();
+        Long numeroContaOrigem = dto.getContaOrigem();
+        Agencia agenciaOrigem = agenciaRepository.findById(numeroAgenciaOrigem)
+                .orElseThrow(() -> new ObjectNotFoundException(numeroAgenciaOrigem, Agencia.class.getSimpleName()));
+        Conta contaOrigem = contaRepository.findByAgenciaAndNumero(agenciaOrigem, numeroContaOrigem)
                 .orElseThrow(() -> new ObjectNotFoundException(numeroContaOrigem, Conta.class.getSimpleName()));
 
-        Long numeroContaDestino = dtoDestino.getNumeroConta();
-        Conta contaDestino = contaRepository.findById(numeroContaDestino)
+        Long numeroAgenciaDestino = dto.getAgenciaDestino();
+        Long numeroContaDestino = dto.getContaDestino();
+        Agencia agenciaDestino = agenciaRepository.findById(numeroAgenciaDestino)
+                .orElseThrow(() -> new ObjectNotFoundException(numeroAgenciaDestino, Agencia.class.getSimpleName()));
+        Conta contaDestino = contaRepository.findByAgenciaAndNumero(agenciaDestino, numeroContaDestino)
                 .orElseThrow(() -> new ObjectNotFoundException(numeroContaDestino, Conta.class.getSimpleName()));
-        
+
         if (numeroContaOrigem.compareTo(numeroContaDestino) == 0) {
-            throw new IllegalArgumentException("Contas de origem e destino não podem ser iguais");            
+            throw new IllegalArgumentException("Contas de origem e destino não podem ser iguais");
         }
-        
+
         BigDecimal saldoOrigem = contaOrigem.getSaldo();
         if (saldoOrigem.compareTo(valorOrigem) < 0) {
-            throw new IllegalArgumentException("Impossível transferir " + valorOrigem + ", saldo disponível: " + saldoOrigem);
+            throw new IllegalArgumentException(
+                    "Impossível transferir " + valorOrigem + ", saldo disponível: " + saldoOrigem);
         }
-        
+
         BigDecimal saldoDestino = contaDestino.getSaldo();
-        
+
         contaOrigem.setSaldo(saldoOrigem.subtract(valorOrigem));
         contaDestino.setSaldo(saldoDestino.add(valorOrigem));
-        
+
         contaRepository.save(contaOrigem);
         contaRepository.save(contaDestino);
 
@@ -129,7 +150,7 @@ public class TransacaoController {
         transacao1.setCliente(contaOrigem.getCliente());
         transacao1.setValor(valorOrigem.negate());
         transacao1 = transacaoRepository.save(transacao1);
-        
+
         Transacao transacao2 = new Transacao();
         transacao2.setDataHora(dataHora);
         transacao2.setAgencia(contaDestino.getAgencia());
@@ -137,8 +158,7 @@ public class TransacaoController {
         transacao2.setCliente(contaDestino.getCliente());
         transacao2.setValor(valorOrigem);
         transacao2 = transacaoRepository.save(transacao2);
-        
-        return Arrays.asList(new TransacaoDto(transacao1),
-                             new TransacaoDto(transacao2));
+
+        return Arrays.asList(new TransacaoDto(transacao1), new TransacaoDto(transacao2));
     }
 }

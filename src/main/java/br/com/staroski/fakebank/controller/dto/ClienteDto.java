@@ -24,6 +24,7 @@ public class ClienteDto {
         this.codigo = cliente.getCodigo();
         this.cpf = cliente.getCpf();
         this.nome = cliente.getNome();
+        this.login = cliente.getLogin();
         List<Conta> contas = cliente.getContas();
         this.contas = contas != null
                 ? contas.stream().map(conta -> new ContaDto(conta)).toList()
