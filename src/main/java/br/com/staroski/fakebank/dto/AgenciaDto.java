@@ -1,4 +1,4 @@
-package br.com.staroski.fakebank.controller.dto;
+package br.com.staroski.fakebank.dto;
 
 import java.util.Collections;
 import java.util.List;

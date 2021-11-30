@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.staroski.fakebank.controller.dto.ContaDto;
+import br.com.staroski.fakebank.dto.ContaDto;
 import br.com.staroski.fakebank.model.Agencia;
 import br.com.staroski.fakebank.model.Cliente;
 import br.com.staroski.fakebank.model.Conta;

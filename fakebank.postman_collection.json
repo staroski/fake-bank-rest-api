@@ -159,36 +159,6 @@
 			"response": []
 		},
 		{
-			"name": "transações listar",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"numeroAgencia\": 1,\r\n    \"numeroConta\": 2\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/fakebank/transacoes/listar",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"fakebank",
-						"transacoes",
-						"listar"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "transações depositar",
 			"request": {
 				"method": "POST",
@@ -255,7 +225,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"agenciaOrigem\": 1,\r\n    \"contaOrigem\": 2,\r\n    \"valor\": 50.0,\r\n    \"agenciaDestino\": 1,\r\n    \"contaDestino\": 1\r\n}",
+					"raw": "{\r\n    \"agenciaOrigem\": 1,\r\n    \"contaOrigem\": 2,\r\n    \"valor\": 5.0,\r\n    \"agenciaDestino\": 1,\r\n    \"contaDestino\": 1\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -273,6 +243,36 @@
 						"fakebank",
 						"transacoes",
 						"transferir"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "transações listar",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"numeroAgencia\": 1,\r\n    \"numeroConta\": 1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/fakebank/transacoes/listar",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"fakebank",
+						"transacoes",
+						"listar"
 					]
 				}
 			},

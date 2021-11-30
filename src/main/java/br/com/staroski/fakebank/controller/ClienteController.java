@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.staroski.fakebank.controller.dto.ClienteDto;
+import br.com.staroski.fakebank.dto.ClienteDto;
 import br.com.staroski.fakebank.model.Cliente;
 import br.com.staroski.fakebank.repository.ClienteRepository;
 

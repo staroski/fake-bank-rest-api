@@ -1,4 +1,4 @@
-package br.com.staroski.fakebank.controller.dto;
+package br.com.staroski.fakebank.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
